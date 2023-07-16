@@ -48,11 +48,11 @@ func (r *Request) run(method, httpMethod string) (data []byte, err error) {
 		return nil, err
 	}
 
-	myUrl := url.URL{Scheme: parsedURL.Scheme, Host: parsedURL.Host, Path: method}
-
-	if parsedURL.Path != nil {
-		httpMethod = parsedURL.Path + httpMethod
+	if len(parsedURL.Path) > 0 {
+		method = parsedURL.Path + method
 	}
+
+	myUrl := url.URL{Scheme: parsedURL.Scheme, Host: parsedURL.Host, Path: method}
 
 	req, err := http.NewRequest(httpMethod, myUrl.String(), nil)
 
