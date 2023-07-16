@@ -50,6 +50,10 @@ func (r *Request) run(method, httpMethod string) (data []byte, err error) {
 
 	myUrl := url.URL{Scheme: parsedURL.Scheme, Host: parsedURL.Host, Path: method}
 
+	if parsedURL.Path != nil {
+		httpMethod = parsedURL.Path + httpMethod
+	}
+
 	req, err := http.NewRequest(httpMethod, myUrl.String(), nil)
 
 	if err != nil {
