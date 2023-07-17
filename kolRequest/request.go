@@ -1,10 +1,10 @@
 package request
 
 import (
-	"io"
 	"net/http"
 	"net/url"
 
+	myResult "github.com/koltypka/kolRequest/kolRequest/result"
 	"github.com/koltypka/kolRequest/myErr"
 )
 
@@ -31,15 +31,27 @@ func (r *Request) AddHeader(key, value string) {
 	r.header[key] = value
 }
 
-func (r *Request) Get(method string) (data []byte, err error) {
+func (r *Request) Get(method string) (data *myResult.ResultHandler, err error) {
 	return r.run(method, http.MethodGet)
 }
 
-func (r *Request) Post(method string) (data []byte, err error) {
+func (r *Request) Head(method string) (data *myResult.ResultHandler, err error) {
+	return r.run(method, http.MethodHead)
+}
+
+func (r *Request) Put(method string) (data *myResult.ResultHandler, err error) {
+	return r.run(method, http.MethodPut)
+}
+
+func (r *Request) Post(method string) (data *myResult.ResultHandler, err error) {
 	return r.run(method, http.MethodPost)
 }
 
-func (r *Request) run(method, httpMethod string) (data []byte, err error) {
+func (r *Request) Delete(method string) (data *myResult.ResultHandler, err error) {
+	return r.run(method, http.MethodDelete)
+}
+
+func (r *Request) run(method, httpMethod string) (data *myResult.ResultHandler, err error) {
 	defer func() { err = myErr.Handle("Request error", err) }()
 
 	parsedURL, err := url.Parse(r.rawUrl)
@@ -56,25 +68,14 @@ func (r *Request) run(method, httpMethod string) (data []byte, err error) {
 
 	req, err := http.NewRequest(httpMethod, myUrl.String(), nil)
 
-	if err != nil {
-		return nil, err
-	}
-
 	r.prepareHeaders(req)
 	req.URL.RawQuery = r.prepareParams().Encode() //подставляем параметры
 
 	result, err := r.client.Do(req)
 
-	if err != nil {
-		return nil, err
-	}
-
 	defer func() { _ = result.Body.Close() }()
 
-	body, err := io.ReadAll(result.Body)
-	if err != nil {
-		return nil, err
-	}
+	body := myResult.New(result)
 
 	return body, nil
 }
