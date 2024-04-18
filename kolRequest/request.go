@@ -12,7 +12,7 @@ type Request struct {
 	rawUrl     string
 	client     http.Client
 	header     map[string]string
-	parameters map[string]string
+	parameters map[string]string //TODO написать функцию, очищающую параметры
 }
 
 func New(rawUrl string) Request {
@@ -56,10 +56,6 @@ func (r *Request) run(method, httpMethod string) (data *myResult.ResultHandler, 
 
 	parsedURL, err := url.Parse(r.rawUrl)
 
-	if err != nil {
-		return nil, err
-	}
-
 	if len(parsedURL.Path) > 0 {
 		method = parsedURL.Path + method
 	}
@@ -73,7 +69,11 @@ func (r *Request) run(method, httpMethod string) (data *myResult.ResultHandler, 
 
 	result, err := r.client.Do(req)
 
-	defer func() { _ = result.Body.Close() }()
+	defer func() {
+		if result != nil {
+			_ = result.Body.Close()
+		}
+	}()
 
 	body := myResult.New(result)
 

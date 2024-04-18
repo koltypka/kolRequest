@@ -16,6 +16,13 @@ type ResultHandler struct {
 }
 
 func New(Response *http.Response) *ResultHandler {
+	if Response == nil {
+		return &ResultHandler{
+			Body:      make([]byte, 0),
+			Header:    nil,
+			isSuccess: false,
+		}
+	}
 	res, err := io.ReadAll(Response.Body)
 
 	flag := true
