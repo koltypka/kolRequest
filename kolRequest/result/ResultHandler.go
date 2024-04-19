@@ -2,6 +2,7 @@ package result
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"io"
 	"net/http"
 
@@ -13,6 +14,16 @@ type ResultHandler struct {
 	Header    http.Header
 	isSuccess bool
 	err       error
+}
+
+type Channel struct {
+	Items []Item `xml:"channel>item"`
+}
+
+type Item struct {
+	Title       string `xml:"title"`
+	Link        string `xml:"link"`
+	Description string `xml:"description"`
 }
 
 func New(Response *http.Response) *ResultHandler {
@@ -61,6 +72,20 @@ func (r *ResultHandler) ToJson() (result map[string]interface{}, err error) {
 	json.Unmarshal(r.Body, &jsonResult)
 
 	result = jsonResult.(map[string]interface{})
+
+	return result, r.err
+}
+
+func (r *ResultHandler) ToStructRss() (result Channel, err error) {
+	defer func() { r.err = myErr.Handle("Request error", r.err) }()
+
+	result = Channel{}
+
+	if !r.isSuccess {
+		return result, r.err
+	}
+
+	xml.Unmarshal(r.Body, &result)
 
 	return result, r.err
 }
