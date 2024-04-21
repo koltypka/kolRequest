@@ -2,10 +2,11 @@ package result
 
 import (
 	"encoding/json"
-	"encoding/xml"
+	"errors"
 	"io"
 	"net/http"
 
+	"github.com/koltypka/kolRequest/kolRequest/result/structures"
 	"github.com/koltypka/kolRequest/myErr"
 )
 
@@ -14,16 +15,6 @@ type ResultHandler struct {
 	Header    http.Header
 	isSuccess bool
 	err       error
-}
-
-type Channel struct {
-	Items []Item `xml:"channel>item"`
-}
-
-type Item struct {
-	Title       string `xml:"title"`
-	Link        string `xml:"link"`
-	Description string `xml:"description"`
 }
 
 func New(Response *http.Response) *ResultHandler {
@@ -76,16 +67,21 @@ func (r *ResultHandler) ToJson() (result map[string]interface{}, err error) {
 	return result, r.err
 }
 
-func (r *ResultHandler) ToStructRss() (result Channel, err error) {
+func (r *ResultHandler) ToStruct(StructType string) (result map[string]interface{}, err error) {
 	defer func() { r.err = myErr.Handle("Request error", r.err) }()
 
-	result = Channel{}
-
 	if !r.isSuccess {
-		return result, r.err
+		return nil, r.err
 	}
 
-	xml.Unmarshal(r.Body, &result)
+	tmpResult := structures.Handler(StructType, r.Body)
+
+	if tmpResult == nil {
+		r.err = errors.New("Empty Result")
+		return nil, r.err
+	}
+
+	result = tmpResult.(map[string]interface{})
 
 	return result, r.err
 }
