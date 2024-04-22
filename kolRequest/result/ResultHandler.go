@@ -60,7 +60,11 @@ func (r *ResultHandler) ToJson() (result map[string]interface{}, err error) {
 
 	var jsonResult interface{}
 
-	json.Unmarshal(r.Body, &jsonResult)
+	err = json.Unmarshal(r.Body, &jsonResult)
+
+	if err != nil {
+		return nil, err
+	}
 
 	result = jsonResult.(map[string]interface{})
 
